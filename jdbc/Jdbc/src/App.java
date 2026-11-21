@@ -33,6 +33,7 @@ public class App {
         con.close();
         
        } catch (SQLException e) {
+        System.out.println("Hello");
         System.out.println(e.getErrorCode());
         System.out.println(e.getMessage());
         System.out.println(e.getSQLState());

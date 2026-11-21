@@ -23,7 +23,18 @@
  * 
  */
 
-package Q12;
+// --------------------------------------------------------------------------------------------
+
+// What happens if the application crashes after deducting
+//  * money from Account A but before crediting Account B? Explain how database
+//  * transactions protect consistency.
+
+// ANSWER --->
+// So my application rollback the transaction this means users need to transaction money again.
+// As we know ,Transaction follows ACID properties so if A account transfers money to B account hence 
+// sum of both the account money remains same after the tranfering money that is known as consistency.
+
+// ------------------------------------------------------------------------------------------------
 
 /**
  * Account
