@@ -1,0 +1,11 @@
+use college;
+create table employee(id int,Name varchar(50),Department varchar(50),salary int);
+select * from employee;
+insert into employee values(1,'Amit','IT',50000),(2,"Rahul","HR",40000),(3,"Priya","IT",80000),(4,"Neha","HR",60000),(5,"Karan","IT",80000),(6,"Simran","Sales",45000),(7,"Mohit","Sales",55000);
+select max(distinct salary) from (select * from employee where salary<(select max(distinct salary) from employee order by salary DESC) ) as v1 order by salary DESC;
+select max(salary),department from employee group by department;
+ select * from employee where salary>(select avg(salary) from employee);
+ select * from (select count(id) as count,department from employee group by department) as v1 where count>1;       
+select * from employee where salary=( select salary from (select count(salary) as count,salary from employee group by salary order by salary desc) as v1 where count>1);
+select max(salary) from (select *from employee where salary<(select max(salary) from (select * from employee where salary<(select max(distinct salary) from employee order by salary DESC)) as v1)) as v2 ;
+select * from employee where salary=(select max(salary) from employee);

@@ -14,6 +14,7 @@ public class App {
         // ps.setString(1, "Cse");
         ps2.setString(1, "Snake");
         ps2.executeUpdate();
+        con.setAutoCommit(false);
         con.commit();
         con.rollback();
         ResultSet rs=ps.executeQuery("Selec * from student where branch='cse';");
