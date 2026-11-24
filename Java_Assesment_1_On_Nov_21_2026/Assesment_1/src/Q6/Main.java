@@ -19,58 +19,99 @@ and calculate the average salary department-wise.
 package Q6;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-    public static void group(String department,ArrayList<Employee> emps){
-        Stream grouping=emps.stream();
-        Stream grouping2=grouping.filter(
-            (Object e)->{
-                Employee e1=(Employee)e;
-                return e1.department==department;
-            }
-        );
-        grouping2.forEach(
-            (Object e)->{
-                Employee e1=(Employee)e;
-                System.out.println(String.format("id %d name %s department %s salary %f",e1.id,e1.name,e1.department,e1.salary ));
-            }
-        );
-    }
-    public static void highestSalary(String department,ArrayList<Employee> emps){
-        Stream grouping=emps.stream();
-        Stream grouping2=grouping.filter(
-            (Object e)->{
-                Employee e1=(Employee)e;
-                return e1.department==department;
-            }
-        );
-        grouping2.forEach(
-            (Object e)->{
-                Employee e1=(Employee)e;
-                System.out.println(String.format("id %d name %s department %s salary %f",e1.id,e1.name,e1.department,e1.salary ));
-            }
-        );
-    }
     public static void main(String[] args) {
-        Employee emp1=new Employee(101, "Amit", "IT", 50000);
-        Employee emp2=new Employee(102, "Rahul", "HR", 40000);
-        Employee emp3=new Employee(103, "Priya", "IT", 70000);
-        Employee emp4=new Employee(104, "Neha", "HR", 60000);
-        Employee emp5=new Employee(105, "Karan", "IT", 70000);
+
+        List<Employee> list = new ArrayList<>();
+        Employee e1 = new Employee(101, "Amit", "IT", 50000);
+        Employee e2 = new Employee(102, "Rahul", "HR", 40000);
+        Employee e3 = new Employee(103, "Priya", "IT", 70000);
+        Employee e4 = new Employee(104, "Neha", "HR", 60000);
+        Employee e5 = new Employee(105, "Karan", "IT", 70000);
+
+        list.add(e1);
+        list.add(e2);
+        list.add(e3);
+        list.add(e4);
+        list.add(e5);
+
+        System.out.println("===== All Employees =====");
+        list.forEach(e -> System.out.println(e));
+
+        // ================= 1: Department ke hisaab se group karo =================
+        Map<String, List<Employee>> byDept = list.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, TreeMap::new, Collectors.toList()));
+
+        System.out.println("\n===== 1. Group by Department =====");
+        byDept.forEach((dept, emps) -> {
+            System.out.println(dept + ":");
+            emps.forEach(e -> System.out.println("   " + e));
+        });
+
+        // ================= 2: Har department ka highest paid employee
+        // =================
+        Map<String, Optional<Employee>> highestPaid = list.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, TreeMap::new,
+                        Collectors.maxBy(Comparator.comparingDouble(Employee::getSalary))));
+
+        System.out.println("\n===== 2. Highest Paid Employee (Department-wise) =====");
+        highestPaid.forEach((dept, emp) -> System.out.println(dept + " -> " + emp.get()));
+
+        // Tie handle karna: IT mein Priya aur Karan dono 70000 hain
+        System.out.println("\n----- 2b. Tie ke saath (same max salary wale sab) -----");
+        byDept.forEach((dept, emps) -> {
+            double max = emps.stream().mapToDouble(Employee::getSalary).max().getAsDouble();
+            System.out.println(dept + " (" + max + "):");
+            emps.stream()
+                    .filter(e -> e.getSalary() == max)
+                    .forEach(e -> System.out.println("   " + e.getName()));
+        });
+
+        // ================= 3: Second highest distinct salary =================
+        Optional<Double> secondHighest = list.stream()
+                .map(Employee::getSalary)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .skip(1)
+                .findFirst();
+
+        System.out.println("\n===== 3. Second Highest Distinct Salary =====");
+        System.out.println(secondHighest.isPresent() ? secondHighest.get() : "Second highest salary exist nahi karti");
+
+                // ================= 4: Employees ko sort karo =================
+
         
-        ArrayList<Employee> emps=new ArrayList<>();
-        emps.add(emp1);
-        emps.add(emp2);
-        emps.add(emp3);
-        emps.add(emp4);
-        emps.add(emp5);
+        System.out.println("\n===== 4. Sort Employees by Salary and then by Name; =====");
+        // 4a: Pehle sirf SALARY se sort (chhota se bada)
+        List<Employee> bySalary = list.stream()
+                .sorted(Comparator.comparingDouble(Employee::getSalary))
+                .collect(Collectors.toList());
 
-        //  group employees by department;
-        group("HR",emps);
-        group("IT",emps);
+        System.out.println("\n===== 4a. Sort by Salary =====");
+        bySalary.forEach(e -> System.out.println(e));
 
+        // 4b: Phir alag se sirf NAME se sort (A-Z)
+        List<Employee> byName = list.stream()
+                .sorted(Comparator.comparing(Employee::getName))
+                .collect(Collectors.toList());
 
-        
+        System.out.println("\n===== 4b. Sort by Name =====");
+        byName.forEach(e -> System.out.println(e));
+
+        // ================= 5: Department-wise average salary =================
+        Map<String, Double> avgSalary = list.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, TreeMap::new,
+                        Collectors.averagingDouble(Employee::getSalary)));
+
+        System.out.println("\n===== 5. Average Salary (Department-wise) =====");
+        avgSalary.forEach((dept, avg) -> System.out.println(dept + " -> " + String.format("%.2f", avg)));
     }
 }
