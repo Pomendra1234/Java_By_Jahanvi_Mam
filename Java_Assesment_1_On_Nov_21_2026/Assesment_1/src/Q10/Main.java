@@ -10,20 +10,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-/*
-INTERVIEW CHALLENGE ANSWER:
-Do users ek hi email se almost same time par register karein, aur dono existence check (SELECT) pass kar lein,
-to bhi duplicate nahi banega, kyunki email column par DATABASE level UNIQUE constraint hai.
 
-- Check-then-insert ek race condition hai: dono ne SELECT kiya, dono ko "email nahi hai" dikha.
-- Phir dono INSERT karte hain. Database ek hi INSERT ko allow karta hai, dusre ko
-  constraint violation error (MySQL error code 1062) deta hai.
-- Hum us SQLException ko catch karke user ko "Email already registered" batate hain
-  aur transaction rollback karte hain.
-- Application level check (SELECT) sirf friendly message ke liye hai. Asli guarantee UNIQUE constraint deta hai.
-- StringBuffer/synchronized se ye solve nahi hota, kyunki requests alag threads/servers par ho sakti hain.
-  Sirf database sabke liye common point hai.
-*/
 public class Main {
 
     private static void inputValidation(String fieldName, String patterns, String input) throws ValidationError {
@@ -32,7 +19,7 @@ public class Main {
         }
     }
 
-    // Password ko SHA-256 se hash karte hain (plain text store nahi karna)
+    // SHA-256
     private static String hashPassword(String password) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] bytes = md.digest(password.getBytes());
@@ -53,7 +40,6 @@ public class Main {
         String password = sc.nextLine().trim();
         sc.close();
 
-        // ===== Validation =====
         try {
             String EMAILPATTERN = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
             String USERNAMEPATTERN = "^[A-Za-z0-9 _.-]{5,30}$";
@@ -61,7 +47,7 @@ public class Main {
 
             inputValidation("email", EMAILPATTERN, email);
             inputValidation("username", USERNAMEPATTERN, username);
-            inputValidation("password (minimum 6 characters, no spaces)", PASSWORDPATTERN, password);
+            inputValidation("password", PASSWORDPATTERN, password);
             System.out.println("Great !");
         } catch (ValidationError e) {
             System.out.println(e.getMessage());
@@ -82,12 +68,11 @@ public class Main {
         String user = "root";
         String pass = "1234";
 
-        // try-with-resources: Connection apne aap close hoga
+        
         try (Connection con = DriverManager.getConnection(url, user, pass)) {
             con.setAutoCommit(false);
             try {
-                // ===== Req 1 aur 2: email already exists? =====
-                try (PreparedStatement check = con.prepareStatement("SELECT 1 FROM register WHERE email = ?")) {
+                try (PreparedStatement check = con.prepareStatement("select 1 from register where email = ?")) {
                     check.setString(1, users.getEmail());
                     try (ResultSet rs = check.executeQuery()) {
                         if (rs.next()) {
@@ -98,21 +83,18 @@ public class Main {
                     }
                 }
 
-                // ===== Req 3 aur 4: email available hai to insert (PreparedStatement) =====
                 try (PreparedStatement ps = con.prepareStatement(
                         "INSERT INTO register (username, email, password) VALUES (?, ?, ?)")) {
                     ps.setString(1, users.getUsername());
                     ps.setString(2, users.getEmail());
                     ps.setString(3, users.getPassword());
                     int rows = ps.executeUpdate();
-                    con.commit(); // commit sirf success par
+                    con.commit(); 
                     System.out.println(String.format("%d row affected. Registration successful.", rows));
                 }
 
             } catch (SQLException e) {
                 con.rollback();
-                // ===== Req 6: DB level UNIQUE constraint ne duplicate roka (error code 1062)
-                // =====
                 if (e.getErrorCode() == 1062) {
                     System.out.println("Email already registered (caught by UNIQUE constraint).");
                 } else {
@@ -120,7 +102,6 @@ public class Main {
                 }
             }
         } catch (SQLException e) {
-            // ===== Req 5: connection ya rollback ki dikkat =====
             System.out.println("Connection error: " + e.getMessage());
         }
     }

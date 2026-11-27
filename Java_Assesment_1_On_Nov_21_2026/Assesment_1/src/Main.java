@@ -188,13 +188,13 @@ public class Main {
                 account(con, 2, "B", 20000);
                 transfer(con, 10000);
 
-                con.commit(); // commit sirf tab, jab sab kuch succeed ho
+                con.commit();
                 System.out.println("Transfer successful. Transaction committed.");
             } catch (SQLException | RuntimeException e) {
-                con.rollback(); // koi bhi step fail -> sab undo
+                con.rollback(); 
                 System.out.println("Transfer failed. Transaction rolled back. Reason: " + e.getMessage());
             } finally {
-                con.setAutoCommit(oldAutoCommit); // auto-commit restore
+                con.setAutoCommit(oldAutoCommit);
             }
         } catch (SQLException e) {
             System.out.println("Connection error: " + e.getMessage());
