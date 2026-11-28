@@ -13,7 +13,7 @@
         </property>
 
         <property name="hibernate.connection.url">
-            jdbc:mysql://localhost:3306/college
+            jdbc:mysql://localhost:3306/amazon
         </property>
 
         <property name="hibernate.connection.username">
@@ -29,7 +29,7 @@
         <property name="hibernate.format_sql">true</property>
 
         <property name="hibernate.hbm2ddl.auto">update</property>
-        <mapping class="com.hibernate.entity.Student"/>
+        <mapping class="com.hibernate.entity.students"/>
 
     </session-factory>
 
